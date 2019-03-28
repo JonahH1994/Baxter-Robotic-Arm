@@ -8,7 +8,8 @@ src/baxter_tools
 src/catkin
 src/catkin_generated
 src/CMakeCache.txt
-src/CMakeFiles
+#src/CMakeFiles
+/CMakeFiles/
 src/cmake_install.cmake
 src/CMakeFiles
 src/CTestTestfile.cmake
@@ -34,4 +35,10 @@ q
 src/.cmake_install.cmake.swp
 src/.rosinstall
 src/.rosinstall.bak
+src/baxter_simulator/.clang-format
+src/baxter_simulator/baxter_gazebo/CMakeFiles/
+src/baxter_simulator/baxter_gazebo/package.xml
+src/baxter_simulator/baxter_gazebo/src/baxter_gazebo_ros_control_plugin.cpp
+src/baxter_simulator/baxter_gazebo/src/ik_pick_and_place_demo.py
+src/baxter_simulator/baxter_gazebo/worlds/
 
