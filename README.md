@@ -1,3 +1,3 @@
-# Baxter-Robotic-Arm
+#Baxter-Robotic-Arm
 
-interfacing the Baxter arm with a kinect in gazebo.
+interfacing the Baxter arm with a kinect in gazebo. The URDF has been modified from the original.
