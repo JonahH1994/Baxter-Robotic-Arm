@@ -82,18 +82,22 @@ int main(int argc, char **argv){
 	ros::Rate r(10) ;
 	ros::Subscriber sub = n.subscribe("/octomap_binary", 1000, octomap_callback);
 	//ros::Subscriber sub = n.subscribe("/camera_ir/camera/depth/points", 1000, p_callback)
-	ros::spin() ;
+	//ros::spin() ;
 	
-	usleep(10000) ;
+	//usleep(500) ;
+	//ros::Duration(5).sleep() ;
+	double t_b = ros::Time::now().toSec() ;
 	std::cout << "Moving on..." << std::endl ;
+	double t_duration = 10 ;
 	while(ros::ok()) {
-		if (tree){
+		if (tree && ros::Time::now().toSec() - t_b > t_duration){
 			break ;
 		}
 		r.sleep() ;
+		ros::spinOnce() ;
 	}
-
 	
+	std::cout << "Creating occupancy grid..." << std::endl ;
 	double maxx, maxy, maxz, minx, miny, minz ;
 	tree->getMetricMin(minx, miny, minz) ;
 	tree->getMetricMax(maxx, maxy, maxz) ;
@@ -101,13 +105,18 @@ int main(int argc, char **argv){
 	minx -= tree->getResolution() ;
 	miny -= tree->getResolution() ;
 	minz -= tree->getResolution() ;
+	Eigen::Vector3d pmin(minx, miny, minz) ;
+	//std::vector<double> pmin{minx, miny, minz} ;
+	OccupancyGrid grid(tree->getResolution(), maxx-minx, maxy-miny, maxz-minz, pmin) ;
 	//const std::vector<double> pmin{minx, miny, minz} ;
 	//octomap::point3d* pmin = new octomap::point3d(float(minx), float(miny), float(minz)) ;
 	//pmin[0] = minx ; pmin[1] = miny ; pmin[2] = minz ;
 	//grid = new OccupancyGrid(tree->getResolution(), maxx-minx, maxy-miny, maxz-minz, octomap::point3d(float(minx), float(miny), float(minz)) ) ;
 	//grid = new OccupancyGrid(tree->getResolution(), maxx-minx, maxy-miny, maxz-minz, minx, miny, minz ) ;
-	OccupancyGrid grid(tree->getResolution(), maxx-minx, maxy-miny, maxz-minz, minx, miny, minz ) ;
+	//OccupancyGrid grid(tree->getResolution(), maxx-minx, maxy-miny, maxz-minz, minx, miny, minz ) ;
+	std::cout << "Finished creating grid..." << std::endl ;
 	while(ros::ok()) {
+		ros::spinOnce() ;
 		grid.update(tree) ;
 		std::cout << "Occupancy grid updated..." << std::endl ;
 		r.sleep() ;

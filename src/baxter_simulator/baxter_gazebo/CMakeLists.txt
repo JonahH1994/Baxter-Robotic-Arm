@@ -10,6 +10,7 @@ find_package(catkin
     baxter_core_msgs
     std_msgs
     sensor_msgs
+    Eigen3
 )
 
 find_package(octomap REQUIRED)
@@ -23,6 +24,7 @@ ${OCTOMAP_INCLUDE_DIRS})
 
 # Depend on system install of Gazebo
 find_package(GAZEBO REQUIRED)
+find_package(Eigen3 REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GAZEBO_CXX_FLAGS}")
 
 find_package(Boost REQUIRED COMPONENTS system)
@@ -45,6 +47,7 @@ include_directories(include
   ${catkin_INCLUDE_DIRS}
   ${GAZEBO_INCLUDE_DIRS}
   ${BAXTER_GAZEBO_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIRS}
 )
 
 set(LINK_LIBS
@@ -79,6 +82,7 @@ add_dependencies(
   octomap_parser
   ${catkin_EXPORTED_TARGETS}
 )
+target_link_libraries(octomap_parser occupancy_grid)
 
 install(DIRECTORY include/"occupancy_grid"/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
