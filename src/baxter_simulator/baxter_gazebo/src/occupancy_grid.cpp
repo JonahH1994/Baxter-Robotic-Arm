@@ -111,8 +111,8 @@ void OccupancyGrid::update_recurse(const Eigen::Vector3d center, double depth, i
   } else {
     // Divide the current center into 8 sub cubes
     for (int i = 0; i < 8; i++) {
-      std::cout << "value of center: " << center << " value of offset: " << offsets[i] << std::endl ;
-      std::cout << "Value of depth: " << depth << std::endl ;
+      //std::cout << "value of center: " << center << " value of offset: " << offsets[i] << std::endl ;
+      //std::cout << "Value of depth: " << depth << std::endl ;
       update_recurse(center+offsets[i]*(depth/4), depth/2, value) ;
     }
   }
@@ -129,7 +129,7 @@ void OccupancyGrid::update(octomap::OcTree* tree) {
 
     //vector<int> curr_opi = octPosToGrid(curr_opd) ;
     int value = (tree->isNodeOccupied(*it)) ? 1 : 0 ;
-    update_recurse(curr_opd, it.getDepth(), value) ;
+    update_recurse(curr_opd, it.getSize(), value) ;
     //setOccupied(curr_opi, value) ;
   }
 }
