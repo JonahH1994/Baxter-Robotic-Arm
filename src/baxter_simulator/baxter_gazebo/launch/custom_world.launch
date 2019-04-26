@@ -80,4 +80,6 @@
 
  <node name="map_listener" pkg="baxter_gazebo" type="octomap_parser" output="screen" />
 
+ <node name="Plotter" pkg="baxter_gazebo" type="plotter2.py" output="screen" />
+
 </launch>

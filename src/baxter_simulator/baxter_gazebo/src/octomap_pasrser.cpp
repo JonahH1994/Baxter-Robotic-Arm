@@ -5,6 +5,11 @@
 #include "../include/occupancy_grid/occupancy_grid.h"
 #include <unistd.h>
 #include <vector>
+#include <std_msgs/Int32.h>
+#include <std_msgs/Float32.h>
+#include <baxter_gazebo/OccupancyGridPlot.h>
+#include <baxter_gazebo/ocg.h>
+//#include <../srv/OccupancyGridPlot>
 //#include <sensor_msgs/PointCloud2>
 //#include <pcl/point_cloud.h>
 using namespace occupancy_grid ;
@@ -13,23 +18,21 @@ octomap::OcTree* tree ;
 //OccupancyGrid::OccupancyGrid grid(msg.resolution, 3, 3, 3, pmin) ;
 void octomap_callback(const octomap_msgs::Octomap& msg){
 
-	std::cout << msg.resolution << std::endl ;
-	//std::cout <<  msg.data[0].resolution<< std::endl ;
 	double tree_resolution = static_cast<double>(msg.resolution) ;
 	tree = new octomap::OcTree(tree_resolution) ;
 	int count = 0;
 	tree =dynamic_cast<octomap::OcTree*>( octomap_msgs::binaryMsgToMap(msg) );
 	octomap::OcTreeNode* rn = tree->getRoot() ;
 	unsigned int max_depth = tree->getTreeDepth() ;
-	std::cout << "Success..."<< std::endl ;
+	//std::cout << "Success..."<< std::endl ;
 	//std::cout << tree->size() << std::endl ;
-	std::cout << "Root value: " << rn->getOccupancy() << std::endl ;
+	//std::cout << "Root value: " << rn->getOccupancy() << std::endl ;
 	double minx, miny, minz, maxx, maxy, maxz = 0.0 ;
 	//tree->getMetricSize(minx, miny, minz) ;
 	tree->getMetricMax(maxx, maxy, maxz) ;
 	tree->getMetricMin(minx, miny, minz) ;
-	std::cout << "Min Size: x = " << minx << " y = " << miny << " z = " << minz << std::endl ;
-	std::cout << "Max Size: x = " << maxx << " y = " << maxy << " z = " << maxz << std::endl ;
+	//std::cout << "Min Size: x = " << minx << " y = " << miny << " z = " << minz << std::endl ;
+	//std::cout << "Max Size: x = " << maxx << " y = " << maxy << " z = " << maxz << std::endl ;
 	/*
 	for(octomap::OcTree::leaf_iterator it = tree->begin_leafs(), end = tree->end_leafs(); it != end; ++it){
 		// Fetching the coordinates in octomap-space
@@ -55,7 +58,7 @@ void octomap_callback(const octomap_msgs::Octomap& msg){
 		std::cout << "Size: " << it.getSize() << std::endl ;
 		std::cout << "Depth: " << it.getDepth() << std::endl ;
 	}*/
-	std::cout << "size of depth: " << tree->getNodeSize(max_depth-2) << std::endl ;
+	//std::cout << "size of depth: " << tree->getNodeSize(max_depth-2) << std::endl ;
 	//std::cout << "Number of hits: " << count << std::endl ;
 	//tree->getMetricMin(min_x, min_y, min_z) ;
 	//std::cout << "loop min: x=" << minx << " y=" << miny << " z=" << minz << std::endl ;
@@ -79,11 +82,13 @@ int main(int argc, char **argv){
 
 	ros::init(argc, argv, "map_listener");
 	ros::NodeHandle n ;
-	ros::Rate r(10) ;
+	ros::Rate r(3) ; // r(10) ;
 	ros::Subscriber sub = n.subscribe("/octomap_binary", 1000, octomap_callback);
 	//ros::Subscriber sub = n.subscribe("/camera_ir/camera/depth/points", 1000, p_callback)
 	//ros::spin() ;
-	
+
+	ros::ServiceClient client = n.serviceClient<baxter_gazebo::OccupancyGridPlot>("Plotter") ;
+	baxter_gazebo::OccupancyGridPlot srv ;
 	//usleep(500) ;
 	//ros::Duration(5).sleep() ;
 	double t_b = ros::Time::now().toSec() ;
@@ -101,24 +106,38 @@ int main(int argc, char **argv){
 	double maxx, maxy, maxz, minx, miny, minz ;
 	tree->getMetricMin(minx, miny, minz) ;
 	tree->getMetricMax(maxx, maxy, maxz) ;
-	//std::vector<double> pmin(3) ; //{minx, miny-tree->getResolution(), minz} ;
 	minx -= tree->getResolution() ;
 	miny -= tree->getResolution() ;
 	minz -= tree->getResolution() ;
 	Eigen::Vector3d pmin(minx, miny, minz) ;
-	//std::vector<double> pmin{minx, miny, minz} ;
 	OccupancyGrid grid(tree->getResolution(), maxx-minx, maxy-miny, maxz-minz, pmin) ;
-	//const std::vector<double> pmin{minx, miny, minz} ;
-	//octomap::point3d* pmin = new octomap::point3d(float(minx), float(miny), float(minz)) ;
-	//pmin[0] = minx ; pmin[1] = miny ; pmin[2] = minz ;
-	//grid = new OccupancyGrid(tree->getResolution(), maxx-minx, maxy-miny, maxz-minz, octomap::point3d(float(minx), float(miny), float(minz)) ) ;
-	//grid = new OccupancyGrid(tree->getResolution(), maxx-minx, maxy-miny, maxz-minz, minx, miny, minz ) ;
-	//OccupancyGrid grid(tree->getResolution(), maxx-minx, maxy-miny, maxz-minz, minx, miny, minz ) ;
 	std::cout << "Finished creating grid..." << std::endl ;
+	ros::Publisher msg_pub = n.advertise<baxter_gazebo::ocg>("occupancy_grid", 1) ;
+	baxter_gazebo::ocg msg; 
+	msg.length = int( grid.getLength() ) ;
+	msg.height = int( grid.getHeight() ) ;
+	msg.width = int( grid.getWidth() ) ;
+	msg.resolution = grid.getResolution() ;
+	int* g = grid.getOccupancyGrid() ;
+	srv.request.length = int( grid.getLength() ) ;
+	srv.request.width = int( grid.getWidth() ) ;
+	srv.request.height = int( grid.getHeight() ) ;
+	srv.request.scale = grid.getScale() ;
 	while(ros::ok()) {
-		ros::spinOnce() ;
 		grid.update(tree) ;
 		std::cout << "Occupancy grid updated..." << std::endl ;
+		g = grid.getOccupancyGrid() ;
+		msg.grid = std::vector<int>(g, g + int(grid.getSize()) ) ;
+		msg.header.stamp = ros::Time::now() ;
+		msg_pub.publish(msg) ;
+//		srv.request.grid = std::vector<int>(g, g+ int(grid.getSize()) ) ;
+//		if (client.call(srv)) {
+//			std::cout << "Success..." << std::endl ;
+//		} else {
+//			std::cout << "Failed..." << std::endl ;
+//		}
+		
+		ros::spinOnce() ;	
 		r.sleep() ;
 	}
 }

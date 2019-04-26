@@ -43,16 +43,18 @@ class OccupancyGrid
                	double getWidth() {return width_; }
                 double getHeight() {return height_; }
 		double getScale() {return scale_; }
+		double getSize() {return length_ * width_ * height_; }
+		double getResolution() {return resolution_ ; }
                 int * getOccupancyGrid() {return occupancy_grid; }
 		Eigen::Vector3d getPMin() {return op_min_; }
 		//std::vector<double> getPMin() {return op_min_; }
 		//octomap::point3d getPMin() {return op_min_; }
-		int getResolution() { return resolution_ ; }
+		//int getResolution() { return resolution_ ; }
                 bool isOccupied(const Eigen::Vector3d octo_pos );
                 //bool isOccupied(const std::vector<double> op_pos ) ;
 		bool isOccupied(const Eigen::Vector3i grid_pos ) ;
 		//bool isOccupied(const std::vector<int> grid_pos ) ;
-                void setOccupied(const Eigen::Vector3i grid_pos, int set_val);
+                void setOccupied(const Eigen::Vector3i grid_pos, int& set_val);
                 //void setOccupied(const std::vector<int> grid_pos, int set_val);
                 int posToIndex(const Eigen::Vector3i grid_pos);
                 //int posToIndex(const std::vector<int> grid_pos);

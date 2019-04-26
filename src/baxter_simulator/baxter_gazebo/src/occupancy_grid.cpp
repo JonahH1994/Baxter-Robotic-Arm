@@ -27,7 +27,7 @@ OccupancyGrid::OccupancyGrid(double resolution, double length, double width, dou
   resolution_(resolution)
   ,op_min_(pmin)
 {
-  scale_ = floor(1/resolution) ;
+  scale_ = floor(1/resolution) ; // * 2 ;
   length_ = int(length * scale_ );
   width_ = int(width * scale_ );
   height_ = int(height * scale_ ); 
@@ -62,9 +62,9 @@ Eigen::Vector3i OccupancyGrid::octPosToGrid(const Eigen::Vector3d octo_pos)
 {
   //std::vector<int> new_pos(3) ; // = new std::vector<int>(3);
   Eigen::Vector3i new_pos ;
-  new_pos(0) = scale_ * (int)floor(octo_pos(0) - op_min_(0)) ;
-  new_pos(1) = scale_ * (int)floor(octo_pos(1) - op_min_(1)) ;
-  new_pos(2) = scale_ * (int)floor(octo_pos(2) - op_min_(2)) ;
+  new_pos(0) = (int)(scale_*(octo_pos(0) - op_min_(0)) ); //(int)(scale_ * floor(octo_pos(0) - op_min_(0)) ) ;
+  new_pos(1) = (int)(scale_*(octo_pos(1) - op_min_(1)) ); // (int)(scale_ * floor(octo_pos(1) - op_min_(1)) ) ;
+  new_pos(2) = (int)(scale_*(octo_pos(2) - op_min_(2)) );  //(int)(scale_ * floor(octo_pos(2) - op_min_(2)) ) ;
 
   return new_pos;
 }
@@ -97,17 +97,27 @@ bool OccupancyGrid::isOccupied(const Eigen::Vector3d octo_pos)
 }
 
 //void OccupancyGrid::setOccupied(const std::vector<int> grid_pos, int set_val )
-void OccupancyGrid::setOccupied(const Eigen::Vector3i grid_pos, int set_val )
+void OccupancyGrid::setOccupied(const Eigen::Vector3i grid_pos, int& set_val )
 {
   int pos = posToIndex(grid_pos) ;
   occupancy_grid[pos] = set_val ;
+  /*for( int i = 0; i < 8; i++ ) {
+    int new_pos = posToIndex(grid_pos + (offsets[i].cast <int> ()) ) ;
+    occupancy_grid[new_pos] = set_val ;
+  }*/
+  //std::cout << "Map Position: \n" << grid_pos << std::endl ;
+  //std::cout << "Value changed to : " << occupancy_grid[pos] << std::endl ;
 }
 
 //void OccupancyGrid::update_recurse(const std::vector<double> center, double depth, int value) {
 void OccupancyGrid::update_recurse(const Eigen::Vector3d center, double depth, int value) {
   if (depth == resolution_) {
     // Base Case: only one cell
+    //std::cout << "Value = " << value << std::endl ;
     setOccupied(octPosToGrid(center), value) ;
+    /*for(int i = 0; i < 8; i++ ) {
+      setOccupied(octPosToGrid(center + offsets[i]*depth/2), value) ;
+    }*/
   } else {
     // Divide the current center into 8 sub cubes
     for (int i = 0; i < 8; i++) {
@@ -127,8 +137,10 @@ void OccupancyGrid::update(octomap::OcTree* tree) {
     curr_opd(1) = cord.y() ;
     curr_opd(2) = cord.z() ;
 
+    //std::cout << "Octomap pos: \n" << curr_opd << std::endl ;
     //vector<int> curr_opi = octPosToGrid(curr_opd) ;
     int value = (tree->isNodeOccupied(*it)) ? 1 : 0 ;
+    //std::cout << "Value = " << value << std::endl ;
     update_recurse(curr_opd, it.getSize(), value) ;
     //setOccupied(curr_opi, value) ;
   }

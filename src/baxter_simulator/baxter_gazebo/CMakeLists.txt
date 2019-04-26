@@ -12,6 +12,22 @@ find_package(catkin
     std_msgs
     sensor_msgs
     Eigen3
+    message_generation
+)
+
+add_message_files(
+   FILES
+   ocg.msg
+)
+
+add_service_files(
+    FILES
+    OccupancyGridPlot.srv
+)
+
+generate_messages(
+   DEPENDENCIES
+   std_msgs
 )
 
 find_package(octomap REQUIRED)
@@ -31,11 +47,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GAZEBO_CXX_FLAGS}")
 find_package(Boost REQUIRED COMPONENTS system)
 
 catkin_package(
+  INCLUDE_DIRS include
   CATKIN_DEPENDS
   baxter_core_msgs
   gazebo_ros_control
   roscpp
   controller_manager_msgs
+  message_runtime
 )
 
 link_directories(
@@ -47,12 +65,12 @@ include_directories(include
   ${Boost_INCLUDE_DIR}
   ${catkin_INCLUDE_DIRS}
   ${GAZEBO_INCLUDE_DIRS}
-  ${BAXTER_GAZEBO_INCLUDE_DIRS}
+  ${baxter_gazebo_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
 )
 
 set(LINK_LIBS
-  ${BAXTER_GAZEBO_LIBRARIES}
+  ${baxter_gazebo_LIBRARIES}
   ${catkin_LIBRARIES}
 )
 #add_executable(occupancy_grid src/occupancy_grid.cpp)
@@ -85,7 +103,7 @@ add_dependencies(
 )
 target_link_libraries(octomap_parser occupancy_grid)
 
-install(DIRECTORY include/"occupancy_grid"/
+install(DIRECTORY include/ #include/"occupancy_grid"/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
   FILES_MATCHING PATTERN "*.h"
   PATTERN ".svn" EXCLUDE

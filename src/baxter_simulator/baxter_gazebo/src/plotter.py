@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # coding=utf8
+import matplotlib
+matplotlib.use('Agg')
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
@@ -9,7 +11,7 @@ from baxter_gazebo.srv import OccupancyGridPlot as ogp
 class Plotter:
 	
 	def __init__(self):
-		rospy.init_node('Plotter')
+		#rospy.init_node('Plotter')
 		self.fig = plt.figure()
 		self.ax = self.fig.add_subplot(111, projection='3d')
 		self.mul = 10 # so that 10 * scale = the size of the marker
@@ -39,7 +41,7 @@ class Plotter:
 					z.append(k)
 					ind = i + j*length + k*length*width
 					#ind = i + j + k
-					c.append(grid[ind])
+					c.append(self.mapper(grid[ind]))
 		return [x, y, z, c]			
 
 	def parser(self, data):
@@ -56,6 +58,7 @@ class Plotter:
 		#plt.show()
 
 if __name__ == '__main__':
+	rospy.init_node('Plotter')
 	plotter = Plotter() 
 	plt.ion()
 	plt.show()
